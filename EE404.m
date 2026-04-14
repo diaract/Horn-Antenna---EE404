@@ -113,3 +113,173 @@ fprintf('   Z = %.2f + j%.2f Ohm\n', real(Z_minS11), imag(Z_minS11));
 fprintf('   |Z| = %.2f Ohm\n', abs(Z_minS11));
 
 fprintf('=================================================\n');
+
+%% Plot the simulated and measured S-parameter values
+clear; close all; clc;
+
+%% File names
+sim_file  = 'HornS11.txt';
+meas_file = 's11.csv';
+
+%% Read simulation data
+sim_data = readmatrix(sim_file, 'FileType', 'text', 'CommentStyle', '#');
+sim_data = sim_data(:,1:2);   % Frequency, |S11|
+
+f_sim = sim_data(:,1);        % GHz
+S11_sim_mag = sim_data(:,2);  % linear magnitude
+S11_sim_dB = 20*log10(S11_sim_mag);
+
+%% Read measured data
+meas_data = readmatrix(meas_file, 'NumHeaderLines', 2);
+meas_data = meas_data(:,1:2); % Frequency, S11(dB)
+
+f_meas = meas_data(:,1);      
+S11_meas_dB = meas_data(:,2);
+
+%% Convert measured frequency to GHz
+f_meas_GHz = f_meas / 1e9;
+
+%% Limit both datasets to the comparison region
+f_low  = 1.6;
+f_high = 2.8;
+
+sim_mask  = (f_sim >= f_low) & (f_sim <= f_high);
+meas_mask = (f_meas_GHz >= f_low) & (f_meas_GHz <= f_high);
+
+f_sim_plot       = f_sim(sim_mask);
+S11_sim_dB_plot  = S11_sim_dB(sim_mask);
+
+f_meas_plot      = f_meas_GHz(meas_mask);
+S11_meas_dB_plot = S11_meas_dB(meas_mask);
+
+%% Find minima in the plotted region
+[minSim, idxSim]   = min(S11_sim_dB_plot);
+[minMeas, idxMeas] = min(S11_meas_dB_plot);
+
+fMinSim  = f_sim_plot(idxSim);
+fMinMeas = f_meas_plot(idxMeas);
+
+%% Plot
+figure('Color','w');
+hold on;
+
+hSim  = plot(f_sim_plot,  S11_sim_dB_plot,  'LineWidth', 2.2);
+hMeas = plot(f_meas_plot, S11_meas_dB_plot, 'LineWidth', 2.2);
+
+% Mark minima
+plot(fMinSim,  minSim,  'o', 'MarkerSize', 9, 'LineWidth', 1.6, ...
+    'MarkerFaceColor', 'w');
+plot(fMinMeas, minMeas, 'o', 'MarkerSize', 9, 'LineWidth', 1.6, ...
+    'MarkerFaceColor', 'w');
+
+grid on;
+box on;
+set(gca, 'FontSize', 12, 'LineWidth', 1);
+
+xlabel('Frequency (GHz)', 'FontSize', 12);
+ylabel('S_{11} (dB)', 'FontSize', 12);
+title('Comparison of Simulated and Measured S_{11}', 'FontSize', 13);
+
+xlim([f_low f_high]);
+ylim([-40 0]);
+
+legend([hSim, hMeas], {'Simulated S_{11}', 'Measured S_{11}'}, ...
+    'Location', 'southeast');
+
+%% Annotation text
+text(fMinSim + 0.015, minSim - 2.0, ...
+    sprintf('Sim: %.2f dB @ %.3f GHz', minSim, fMinSim), ...
+    'FontSize', 11, 'HorizontalAlignment', 'left');
+
+text(fMinMeas + 0.015, minMeas + 0.8, ...
+    sprintf('Meas: %.2f dB @ %.3f GHz', minMeas, fMinMeas), ...
+    'FontSize', 11, 'HorizontalAlignment', 'left');
+
+%% Optional: print results in command window
+fprintf('Simulated minimum S11  = %.2f dB at %.3f GHz\n', minSim, fMinSim);
+fprintf('Measured minimum S11   = %.2f dB at %.3f GHz\n', minMeas, fMinMeas);
+fprintf('Frequency difference   = %.3f GHz (%.1f MHz)\n', ...
+    abs(fMinMeas - fMinSim), abs(fMinMeas - fMinSim)*1000);
+
+%% Plot the simulated and measured VSWR
+clear; close all; clc;
+
+%% File names
+sim_file  = 'Horn VSWR.txt';
+meas_file = 'vswr.csv';
+
+%% Read simulation data
+sim_data = readmatrix(sim_file, 'FileType', 'text', 'CommentStyle', '#');
+sim_data = sim_data(:,1:2);   % Frequency (GHz), VSWR
+
+f_sim = sim_data(:,1);
+VSWR_sim = sim_data(:,2);
+
+%% Read measured data
+meas_data = readmatrix(meas_file, 'NumHeaderLines', 2);
+meas_data = meas_data(:,1:2); % Frequency (Hz), VSWR
+
+f_meas = meas_data(:,1) / 1e9; % Convert Hz → GHz
+VSWR_meas = meas_data(:,2);
+
+%% Define frequency range
+f_low  = 1.6;
+f_high = 2.8;
+
+%% Apply mask 
+sim_mask  = (f_sim >= f_low) & (f_sim <= f_high);
+meas_mask = (f_meas >= f_low) & (f_meas <= f_high);
+
+f_sim_plot  = f_sim(sim_mask);
+VSWR_sim_plot = VSWR_sim(sim_mask);
+
+f_meas_plot  = f_meas(meas_mask);
+VSWR_meas_plot = VSWR_meas(meas_mask);
+
+%% Find minimum values in the plotted region
+[minSim, idxSim] = min(VSWR_sim_plot);
+[minMeas, idxMeas] = min(VSWR_meas_plot);
+
+fMinSim  = f_sim_plot(idxSim);
+fMinMeas = f_meas_plot(idxMeas);
+
+%% Plot
+figure('Color','w');
+hold on;
+
+hSim  = plot(f_sim_plot,  VSWR_sim_plot,  'LineWidth', 2.2);
+hMeas = plot(f_meas_plot, VSWR_meas_plot, 'LineWidth', 2.2);
+
+%% Mark minima
+plot(fMinSim,  minSim,  'ro', 'MarkerSize', 8, 'LineWidth', 1.5, 'MarkerFaceColor','w');
+plot(fMinMeas, minMeas, 'ko', 'MarkerSize', 8, 'LineWidth', 1.5, 'MarkerFaceColor','w');
+
+%% Formatting
+grid on;
+box on;
+set(gca, 'FontSize', 12, 'LineWidth', 1);
+
+xlabel('Frequency (GHz)', 'FontSize', 12);
+ylabel('VSWR', 'FontSize', 12);
+title('Comparison of Simulated and Measured VSWR', 'FontSize', 13);
+
+xlim([f_low f_high]);
+ylim([1 4]);
+
+legend([hSim, hMeas], {'Simulated VSWR', 'Measured VSWR'}, ...
+    'Location', 'northeast');
+
+%% Annotations
+text(fMinSim + 0.02, minSim + 0.05, ...
+    sprintf('Sim: %.2f @ %.3f GHz', minSim, fMinSim), ...
+    'FontSize', 11);
+
+text(fMinMeas + 0.02, minMeas + 0.1, ...
+    sprintf('Meas: %.2f @ %.3f GHz', minMeas, fMinMeas), ...
+    'FontSize', 11);
+
+%% Print results
+fprintf('Simulated minimum VSWR = %.2f at %.3f GHz\n', minSim, fMinSim);
+fprintf('Measured minimum VSWR  = %.2f at %.3f GHz\n', minMeas, fMinMeas);
+fprintf('Frequency difference   = %.3f GHz (%.1f MHz)\n', ...
+    abs(fMinMeas - fMinSim), abs(fMinMeas - fMinSim)*1000);
