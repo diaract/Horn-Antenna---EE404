@@ -283,3 +283,22 @@ fprintf('Simulated minimum VSWR = %.2f at %.3f GHz\n', minSim, fMinSim);
 fprintf('Measured minimum VSWR  = %.2f at %.3f GHz\n', minMeas, fMinMeas);
 fprintf('Frequency difference   = %.3f GHz (%.1f MHz)\n', ...
     abs(fMinMeas - fMinSim), abs(fMinMeas - fMinSim)*1000);
+
+%% Convert frequency to GHz
+f_s11 = f_s11 / 1e9;
+
+%% Bandwidth calculation
+threshold = -10;
+
+idx = find(S11_dB < threshold);
+
+f_low  = f_s11(idx(1));
+f_high = f_s11(idx(end));
+
+BW = f_high - f_low;
+
+fprintf('\n========== BANDWIDTH ==========\n');
+fprintf('Lower frequency  = %.3f GHz\n', f_low);
+fprintf('Upper frequency  = %.3f GHz\n', f_high);
+fprintf('Bandwidth        = %.3f GHz\n', BW);
+fprintf('================================\n');
