@@ -115,7 +115,7 @@ fprintf('   |Z| = %.2f Ohm\n', abs(Z_minS11));
 fprintf('=================================================\n');
 
 %% Plot the simulated and measured S-parameter values
-clear; close all; clc;
+
 
 %% File names
 sim_file  = 'HornS11.txt';
@@ -202,7 +202,7 @@ fprintf('Frequency difference   = %.3f GHz (%.1f MHz)\n', ...
     abs(fMinMeas - fMinSim), abs(fMinMeas - fMinSim)*1000);
 
 %% Plot the simulated and measured VSWR
-clear; close all; clc;
+
 
 %% File names
 sim_file  = 'Horn VSWR.txt';
